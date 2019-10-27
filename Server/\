@@ -1,0 +1,169 @@
+from flask import Flask, render_template, flash, request, jsonify, abort
+from . import main 
+from .. import db
+from ..models import Student, Teacher, Class, Subject, Task, Theme, Work, CorrectAnswer, Answer
+
+@main.route('/test', methods=['GET', 'POST'])
+def test():
+    test_password = 'Test'
+    print(request)
+    content = request.json
+    print(content)
+    return jsonify({'teacher_id': 1}), 200 if content['password'] == test_password else 403
+
+@main.route('/teacher/<int:teacher_id>')
+def get_teacher(teacher_id):
+    teacher = Teacher.query.get(teacher_id)
+    return jsonify({
+        'surname':      teacher.surname,
+        'name':         teacher.name,
+        'patronymic':   teacher.patronymic,
+        'classes':      [{'letter': f'{class_.num}{class_.letter}', 'id': class_.id} 
+                         for class_ in teacher.classes],
+        'subjects':     [subject.id for subject in teacher.subjects]
+    })
+
+@main.route('/class/<int:class_id>')
+def get_class(class_id):
+    class_ = Class.query.get(class_id)
+    return jsonify({
+        'name':             f'{class_.num}{class_.letter}',
+        'teacher':          class_.teacher_id,
+        'students':         [student.id for student in class_.students],
+        'student_names':    [f'{student.surname} {student.name} {student.patronymic}' for student in class_.students]
+    })
+
+@main.route('/student/<int:student_id>')
+def get_student(student_id):
+    student = Student.query.get(student_id)
+    return jsonify({
+        'surname':      student.surname,
+        'name':         student.name,
+        'patronimyc':   student.patronymic,
+        'class_':       student.class_.id
+    })
+
+@main.route('/subject/')
+@main.route('/subject/<int:subject_id>')
+def get_subject(subject_id=None):
+    if subject_id is None:
+        subjects = Subject.query.all()
+        return jsonify({
+            "subjects": [{
+                'id':       subj.id,
+                'teacher':  subj.teacher_id, 
+                'name':     subj.name, 
+                'themes':   [theme.id for theme in subj.themes]} for subj in subjects]
+        })
+    else:
+        subject = Subject.query.get(subject_id)
+        return jsonify({
+            'teacher':  subject.teacher_id,
+            'name':     subject.name,
+            'themes':   [theme.id for theme in subject.themes]
+        })
+
+@main.route('/theme/<int:theme_id>', methods=['GET'])
+def get_theme(theme_id):
+    theme = Theme.query.get(theme_id)
+    return jsonify({
+        "name":         theme.name,
+        "subject_id":   theme.subject_id,
+        "tasks":        [task.id for task in theme.tasks]
+    })
+
+
+@main.route('/task/', methods=['GET'])
+@main.route('/task/<int:task_id>', methods=['GET'])
+def get_task(task_id=None):
+    if task_id is not None:
+        task = Task.query.get(task_id)
+        return jsonify({
+            'difficulty':   task.difficulty,
+            'text':         task.text,
+            'answer_type':  task.answer_type,
+            'themes':       [theme.id for theme in task.themes]
+        })
+    else:
+        subject_id = request.args.get('subject_id', default=0, type=int)
+        theme_id = request.args.get('theme_id', default=0, type=int)
+        tasks = None
+        if theme_id:
+            tasks = Theme.query.get(theme_id).tasks
+        elif subject_id:
+            tasks = Subject.query.get(subject_id).tasks
+        else:
+            tasks = Task.query.all()
+    return jsonify({
+        "tasks": [{
+            "id":           task.id,
+            "difficulty":   task.difficulty,
+            "text":         task.text,
+            "answer_type":  task.answer_type,
+            "themes":       [theme.id for theme in task.themes]
+        } for task in tasks],
+    })
+
+@main.route('/task', methods=['POST'])
+def create_task():
+    data = request.json
+    if data is None:
+        return '', 400
+
+    difficulty = data.get('difficulty', None)
+    text = data.get('text', None)
+    subject_id = data.get('subject_id', None)
+    themes = data.get('themes', None)
+
+    task = Task(
+        difficulty=int(difficulty), 
+        text=text,
+        answer_type=0,
+        subject=Subject.query.get(subject_id))
+    task.themes.extend([Theme.query.get(theme_id) for theme_id in themes])
+
+    correct_answers = data.get('correct_answer', None)
+
+
+    db.session.add(task)
+    db.session.commit()
+
+    return jsonify({
+        'task_id':   task.id
+    })
+
+# ? student_id=None, task_amount=10, subject_id=None, 
+@main.route('/practice/')
+def get_practice_tasks():
+    tasks = Task.query.all()
+    subj_id = request.args.get('subject_id', default=0, type=int)
+    if subj_id:
+        tasks = Task.query.filter(Task.subject_id == subj_id)
+    
+    # TODO: predict the difficulties
+    # TODO: select top
+    return jsonify({
+        "tasks": [task.id for task in tasks]
+    })
+
+@main.route('/assign_task/', methods=['POST', 'GET'])
+def assign_task():
+    data = request.json
+    if data is None:
+        return '', 400
+    task_ids = data.get('task_id', None)
+    if task_ids is not None:
+        student_id = request.args.get('student_id', 0, int)
+
+        db.session.add_all([Assignment(task=Task.query.get(task_id), student=Student.get(student_id)) 
+                    for task_id in task_ids])
+        db.session.commit()
+
+        return '', 200
+    else:
+        abort(400)
+
+@main.route('/works/', methods=['GET'])
+@main.route('/works/<int:work_id>', methods=['GET'])
+def get_work(work_id=None):
+    return ''
