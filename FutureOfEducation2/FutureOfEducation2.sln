@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.779
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FutureOfEducation2", "FutureOfEducation2\FutureOfEducation2.csproj", "{EAF80CC2-4C93-4998-9806-48B3E86C2A7B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EAF80CC2-4C93-4998-9806-48B3E86C2A7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EAF80CC2-4C93-4998-9806-48B3E86C2A7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EAF80CC2-4C93-4998-9806-48B3E86C2A7B}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{EAF80CC2-4C93-4998-9806-48B3E86C2A7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EAF80CC2-4C93-4998-9806-48B3E86C2A7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EAF80CC2-4C93-4998-9806-48B3E86C2A7B}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0EA72C2F-90F8-4B13-97BD-126654A27982}
+	EndGlobalSection
+EndGlobal
